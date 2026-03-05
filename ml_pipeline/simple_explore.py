@@ -2,7 +2,10 @@ import pandas as pd
 import numpy as np
 from sklearn.preprocessing import LabelEncoder
 from app.core.config import BASE_DIR
-from app.core.logging import logger
+from app.core.logging import setup_logging
+
+# 初始化探索专用日志器
+logger = setup_logging("explore")
 
 
 class SimpleDataExplorer:

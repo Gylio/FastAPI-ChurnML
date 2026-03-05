@@ -9,14 +9,21 @@ from pathlib import Path
 from app.core.config import settings, LOG_DIR
 
 
-def setup_logging() -> logging.Logger:
+def setup_logging(log_subdir: str = "app") -> logging.Logger:
     """
     配置全局日志系统：
     1. 日志级别：由settings.LOG_LEVEL控制（默认INFO）
-    2. 输出目标：控制台 + 文件（logs/app.log）
+    2. 输出目标：控制台 + 文件（logs/{log_subdir}/app.log）
     3. 日志分割：单个文件最大10MB，保留10个备份
     4. 日志格式：包含时间、模块、级别、请求ID（可选）、消息
+
+    Args:
+        log_subdir: 日志存放的子目录，默认为"app"
     """
+    # 打印调试信息
+    print(f"LOG_DIR: {LOG_DIR}")
+    print(f"log_subdir: {log_subdir}")
+
     # 1. 定义日志格式
     # 详细格式（文件输出）：时间 - 模块 - 级别 - 消息
     file_formatter = logging.Formatter(
@@ -34,8 +41,15 @@ def setup_logging() -> logging.Logger:
     root_logger.setLevel(settings.LOG_LEVEL)
     root_logger.handlers.clear()  # 清空默认处理器，避免重复输出
 
-    # 3. 添加文件处理器（按大小分割）
-    log_file_path = LOG_DIR / "app.log"
+    # 3. 确保日志子目录存在
+    log_dir = LOG_DIR / log_subdir
+    print(f"log_dir: {log_dir}")
+    log_dir.mkdir(parents=True, exist_ok=True)
+    print(f"log_dir exists: {log_dir.exists()}")
+
+    # 4. 添加文件处理器（按大小分割）
+    log_file_path = log_dir / "app.log"
+    print(f"log_file_path: {log_file_path}")
     file_handler = RotatingFileHandler(
         filename=log_file_path,
         maxBytes=settings.LOG_FILE_MAX_SIZE,
@@ -45,18 +59,25 @@ def setup_logging() -> logging.Logger:
     file_handler.setLevel(settings.LOG_LEVEL)
     file_handler.setFormatter(file_formatter)
     root_logger.addHandler(file_handler)
+    print(f"file_handler added")
 
-    # 4. 添加控制台处理器
+    # 5. 添加控制台处理器
     console_handler = logging.StreamHandler(sys.stdout)
     console_handler.setLevel(settings.LOG_LEVEL)
     console_handler.setFormatter(console_formatter)
     root_logger.addHandler(console_handler)
+    print(f"console_handler added")
 
-    # 5. 为第三方库降低日志级别（避免FastAPI/uvicorn日志刷屏）
+    # 6. 为第三方库降低日志级别（避免FastAPI/uvicorn日志刷屏）
     logging.getLogger("uvicorn").setLevel(logging.WARNING)
     logging.getLogger("fastapi").setLevel(logging.WARNING)
     logging.getLogger("pandas").setLevel(logging.WARNING)
     logging.getLogger("sklearn").setLevel(logging.WARNING)
+
+    # 测试日志输出
+    print("Testing logger output...")
+    root_logger.info(f"日志系统初始化完成，日志文件路径：{log_file_path}")
+    root_logger.error("测试错误日志")
 
     return root_logger
 
@@ -69,6 +90,7 @@ class RequestIDLogger(logging.LoggerAdapter):
     logger = RequestIDLogger(root_logger, {"request_id": "123456"})
     logger.info("预测请求开始")  # 日志会包含request_id=123456
     """
+
     def process(self, msg, kwargs):
         return f"{msg}", {"extra": {"request_id": self.extra.get("request_id", "unknown")}}
 

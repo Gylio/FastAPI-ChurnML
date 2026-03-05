@@ -6,7 +6,10 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 import joblib
 from app.core.config import BASE_DIR, MODEL_DIR, settings
-from app.core.logging import logger
+from app.core.logging import setup_logging
+
+# 初始化训练专用日志器
+logger = setup_logging("train")
 
 logger.info("=== 开始简单模型训练 ===")
 
