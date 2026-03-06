@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}用户流失预测系统{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='/css/style.css') }}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar">
+        <div class="container">
+            <h1>用户流失预测系统</h1>
+            <ul class="navbar-nav">
+                <li><a href="{{ url_for('predict_page') }}">单条预测</a></li>
+                <li><a href="{{ url_for('batch_page') }}">批量预测</a></li>
+                <li><a href="{{ url_for('monitor_page') }}">监控可视化</a></li>
+                <li><a href="/docs" target="_blank">API文档</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- 主内容区 -->
+    <div class="container">
+        {% block content %}{% endblock %}
+    </div>
+
+    <!-- 脚本 -->
+    <script src="{{ url_for('static', path='/js/main.js') }}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

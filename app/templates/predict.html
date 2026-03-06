@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+
+{% block title %}单条预测 - 用户流失预测系统{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', path='/js/predict.js') }}"></script>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>单条预测</h2>
+    <p>请填写以下用户特征，系统将预测用户是否会流失。</p>
+    
+    <form id="predict-form">
+        <div class="form-row">
+            <div class="form-group">
+                <label for="gender">性别</label>
+                <select id="gender" required>
+                    <option value="Male">男</option>
+                    <option value="Female">女</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="SeniorCitizen">是否为老年公民</label>
+                <select id="SeniorCitizen" required>
+                    <option value="0">否</option>
+                    <option value="1">是</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="Partner">是否有配偶</label>
+                <select id="Partner" required>
+                    <option value="Yes">是</option>
+                    <option value="No">否</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="Dependents">是否有家属</label>
+                <select id="Dependents" required>
+                    <option value="Yes">是</option>
+                    <option value="No">否</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="form-row">
+            <div class="form-group">
+                <label for="tenure">使用时长（月）</label>
+                <input type="number" id="tenure" min="0" required>
+            </div>
+            <div class="form-group">
+                <label for="MonthlyCharges">月费用</label>
+                <input type="number" id="MonthlyCharges" min="0" step="0.01" required>
+            </div>
+            <div class="form-group">
+                <label for="TotalCharges">总费用</label>
+                <input type="number" id="TotalCharges" min="0" step="0.01" required>
+            </div>
+        </div>
+        
+        <div class="form-row">
+            <div class="form-group">
+                <label for="PhoneService">是否有电话服务</label>
+                <select id="PhoneService" required>
+                    <option value="Yes">是</option>
+                    <option value="No">否</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="MultipleLines">是否有多条线路</label>
+                <select id="MultipleLines" required>
+                    <option value="Yes">是</option>
+                    <option value="No">否</option>
+                    <option value="No phone service">无电话服务</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="InternetService">互联网服务类型</label>
+                <select id="InternetService" required>
+                    <option value="DSL">DSL</option>
+                    <option value="Fiber optic">光纤</option>
+                    <option value="No">无</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="form-row">
+            <div class="form-group">
+                <label for="OnlineSecurity">是否有在线安全服务</label>
+                <select id="OnlineSecurity" required>
+                    <option value="Yes">是</option>
+                    <option value="No">否</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="OnlineBackup">是否有在线备份服务</label>
+                <select id="OnlineBackup" required>
+                    <option value="Yes">是</option>
+                    <option value="No">否</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="DeviceProtection">是否有设备保护服务</label>
+                <select id="DeviceProtection" required>
+                    <option value="Yes">是</option>
+                    <option value="No">否</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="form-row">
+            <div class="form-group">
+                <label for="TechSupport">是否有技术支持服务</label>
+                <select id="TechSupport" required>
+                    <option value="Yes">是</option>
+                    <option value="No">否</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="StreamingTV">是否有流媒体电视服务</label>
+                <select id="StreamingTV" required>
+                    <option value="Yes">是</option>
+                    <option value="No">否</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="StreamingMovies">是否有流媒体电影服务</label>
+                <select id="StreamingMovies" required>
+                    <option value="Yes">是</option>
+                    <option value="No">否</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="form-row">
+            <div class="form-group">
+                <label for="Contract">合同类型</label>
+                <select id="Contract" required>
+                    <option value="Month-to-month">月付</option>
+                    <option value="One year">一年</option>
+                    <option value="Two year">两年</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="PaperlessBilling">是否使用无纸化账单</label>
+                <select id="PaperlessBilling" required>
+                    <option value="Yes">是</option>
+                    <option value="No">否</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="PaymentMethod">支付方式</label>
+                <select id="PaymentMethod" required>
+                    <option value="Electronic check">电子支票</option>
+                    <option value="Mailed check">邮寄支票</option>
+                    <option value="Bank transfer (automatic)">银行自动转账</option>
+                    <option value="Credit card (automatic)">信用卡自动扣款</option>
+                </select>
+            </div>
+        </div>
+        
+        <button type="submit" id="predict-button">预测</button>
+    </form>
+    
+    <div id="result"></div>
+</div>
+{% endblock %}

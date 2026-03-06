@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block title %}批量预测 - 用户流失预测系统{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', path='/js/batch.js') }}"></script>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>批量预测</h2>
+    <p>请上传包含用户特征的CSV或Excel文件，系统将批量预测用户是否会流失。</p>
+    
+    <form id="batch-form" enctype="multipart/form-data">
+        <div class="form-group">
+            <label for="file">上传文件</label>
+            <input type="file" id="file" accept=".csv,.xlsx" required>
+            <p class="error" style="font-size: 12px; margin-top: 5px;">支持的文件格式：CSV、Excel</p>
+        </div>
+        
+        <button type="submit" id="batch-button">开始预测</button>
+    </form>
+    
+    <div id="result"></div>
+</div>
+
+<div class="card">
+    <h3>文件格式说明</h3>
+    <p>请确保上传的文件包含以下字段：</p>
+    <ul>
+        <li>gender: 性别 (Male/Female)</li>
+        <li>SeniorCitizen: 是否为老年公民 (0/1)</li>
+        <li>Partner: 是否有配偶 (Yes/No)</li>
+        <li>Dependents: 是否有家属 (Yes/No)</li>
+        <li>tenure: 使用时长（月）</li>
+        <li>PhoneService: 是否有电话服务 (Yes/No)</li>
+        <li>MultipleLines: 是否有多条线路 (Yes/No/No phone service)</li>
+        <li>InternetService: 互联网服务类型 (DSL/Fiber optic/No)</li>
+        <li>OnlineSecurity: 是否有在线安全服务 (Yes/No)</li>
+        <li>OnlineBackup: 是否有在线备份服务 (Yes/No)</li>
+        <li>DeviceProtection: 是否有设备保护服务 (Yes/No)</li>
+        <li>TechSupport: 是否有技术支持服务 (Yes/No)</li>
+        <li>StreamingTV: 是否有流媒体电视服务 (Yes/No)</li>
+        <li>StreamingMovies: 是否有流媒体电影服务 (Yes/No)</li>
+        <li>Contract: 合同类型 (Month-to-month/One year/Two year)</li>
+        <li>PaperlessBilling: 是否使用无纸化账单 (Yes/No)</li>
+        <li>PaymentMethod: 支付方式 (Electronic check/Mailed check/Bank transfer (automatic)/Credit card (automatic))</li>
+        <li>MonthlyCharges: 月费用</li>
+        <li>TotalCharges: 总费用</li>
+    </ul>
+</div>
+{% endblock %}

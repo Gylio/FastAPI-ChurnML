@@ -1,0 +1,11 @@
+{
+  "total_requests": 2,
+  "successful_requests": 1,
+  "failed_requests": 1,
+  "accuracy": null,
+  "average_response_time": 0.029325485229492188,
+  "response_times": [
+    0.029325485229492188
+  ],
+  "last_update": "2026-03-06T14:13:35.582567"
+}

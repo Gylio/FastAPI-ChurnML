@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block title %}监控可视化 - 用户流失预测系统{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', path='/js/monitor.js') }}"></script>
+{% endblock %}
+
+{% block content %}
+<div id="stats-info">
+    <div class="card">
+        <h3>实时统计</h3>
+        <div class="form-row">
+            <div class="form-group">
+                <label>总请求数</label>
+                <div class="result-value">0</div>
+            </div>
+            <div class="form-group">
+                <label>成功请求数</label>
+                <div class="result-value">0</div>
+            </div>
+            <div class="form-group">
+                <label>失败请求数</label>
+                <div class="result-value">0</div>
+            </div>
+            <div class="form-group">
+                <label>模型准确率</label>
+                <div class="result-value">N/A</div>
+            </div>
+            <div class="form-group">
+                <label>平均响应时间</label>
+                <div class="result-value">0ms</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <h2>监控可视化</h2>
+    <p>实时监控系统运行状态和模型性能。</p>
+    
+    <div class="chart-container" id="request-chart"></div>
+</div>
+
+<div class="card">
+    <div class="chart-container" id="accuracy-chart"></div>
+</div>
+
+<div class="card">
+    <div class="chart-container" id="error-chart"></div>
+</div>
+{% endblock %}
