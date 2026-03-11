@@ -65,4 +65,31 @@
 <div class="card">
     <div class="chart-container" id="error-chart"></div>
 </div>
+
+<div class="card">
+    <h3>模型训练与EDA报告</h3>
+    <p>以下报告由 <code>ml_pipeline</code> 脚本离线生成，点击可在新窗口查看。</p>
+    <div class="form-row">
+        <div class="form-group">
+            <button type="button" onclick="window.open('/ml-reports/eda_report.html', '_blank')">
+                查看EDA报告
+            </button>
+        </div>
+        <div class="form-group">
+            <button type="button" onclick="window.open('/ml-reports/numeric_features.png', '_blank')">
+                数值特征分布
+            </button>
+        </div>
+        <div class="form-group">
+            <button type="button" onclick="window.open('/ml-reports/correlation_heatmap.png', '_blank')">
+                特征相关性热力图
+            </button>
+        </div>
+        <div class="form-group">
+            <button type="button" onclick="window.open('/ml-reports/model_comparison.png', '_blank')">
+                模型性能对比
+            </button>
+        </div>
+    </div>
+</div>
 {% endblock %}

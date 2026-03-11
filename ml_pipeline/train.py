@@ -12,9 +12,8 @@ from app.core.config import BASE_DIR, MODEL_DIR, settings
 from app.core.logging import setup_logging
 from ml_pipeline.data_prep import DataPreprocessor
 
-# 设置matplotlib支持中文
-plt.rcParams['font.sans-serif'] = ['SimHei']  # 用来正常显示中文标签
-plt.rcParams['axes.unicode_minus'] = False  # 用来正常显示负号
+plt.rcParams['font.sans-serif'] = ['SimHei']
+plt.rcParams['axes.unicode_minus'] = False
 
 # 初始化训练专用日志器
 logger = setup_logging("train")

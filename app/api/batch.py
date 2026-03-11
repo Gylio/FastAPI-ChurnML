@@ -1,8 +1,10 @@
-from fastapi import APIRouter, HTTPException, UploadFile, File, Query
+from fastapi import APIRouter, HTTPException, UploadFile, File, Query, Request
 from typing import Optional
 from app.schemas.schemas import BatchPredictOutput, ErrorResponse
 from app.services.predict_service import predict_batch, save_batch_results
 from app.services.stats_service import record_request
+from app.services.prediction_log_service import log_batch_prediction
+from app.models.model_manager import model_manager
 from app.core.logging import setup_logging
 import time
 import uuid
@@ -21,8 +23,9 @@ router = APIRouter(
 
 @router.post("/batch-predict", response_model=BatchPredictOutput, summary="批量预测接口")
 async def batch_predict(
+    request: Request,
     file: UploadFile = File(..., description="要预测的CSV或Excel文件"),
-    model_version: Optional[int] = Query(None, description="模型版本号")
+    model_version: Optional[int] = Query(None, description="模型版本号"),
 ):
     """
     批量预测接口
@@ -48,6 +51,43 @@ async def batch_predict(
         
         # 执行批量预测
         result = predict_batch(temp_file_path)
+
+        # 如果模型无法对该数据集进行有效预测（例如列差异过大），返回可读错误给前端
+        if result.total_count == 0:
+            raise ValueError("上传的数据列与模型期望差异过大，无法进行批量预测，请检查字段名和格式是否正确")
+
+        # 计算本次使用的模型版本（字符串），用于日志：
+        # 1. 如果显式指定 model_version，则使用 v{model_version}
+        # 2. 否则使用当前模型管理器版本
+        # 3. 兜底 v2（预测日志服务内部也会再次兜底）
+        current_version = model_manager.get_model_version()
+        if model_version is not None:
+            effective_version = f"v{model_version}"
+        elif current_version is not None:
+            effective_version = f"v{current_version}"
+        else:
+            effective_version = "v2"
+
+        # 日志：批量预测
+        user = getattr(request.state, "user", None)
+        user_id = user.get("user_id") if isinstance(user, dict) else None
+        try:
+            log_batch_prediction(
+                user_id=user_id,
+                model_version=effective_version,
+                items=[
+                    {
+                        "features": {},  # 如需完整特征可在服务层回传
+                        "prediction_label": item.prediction,
+                        "prediction_probability": item.probability,
+                    }
+                    for item in result.items
+                ],
+                churn_count=result.churn_count,
+                non_churn_count=result.non_churn_count,
+            )
+        except Exception as log_err:
+            logger.error(f"记录批量预测日志失败: {log_err}")
         
         # 保存预测结果
         download_path = save_batch_results(result, 'csv')
@@ -71,11 +111,17 @@ async def batch_predict(
         record_request(request_type="batch", successful=False, response_time=response_time, request_id=request_id)
         
         logger.error(f"批量预测失败，请求ID: {request_id}, 错误: {e}")
+        # 尝试提取可读错误信息
+        message = str(e)
+        if "差异过大" in message or "无法进行批量预测" in message:
+            error_message = message
+        else:
+            error_message = "批量预测失败"
         raise HTTPException(
             status_code=500,
             detail=ErrorResponse(
                 error_code=500,
-                error_message="批量预测失败",
+                error_message=error_message,
                 request_id=request_id,
                 details=str(e)
             ).dict()

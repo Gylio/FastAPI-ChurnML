@@ -5,6 +5,7 @@ from fastapi.templating import Jinja2Templates
 from fastapi import Request
 from app.api import predict, batch, model, stats, auth
 from app.core.logging import setup_logging
+from app.core.config import BASE_DIR as PROJECT_ROOT
 from app.core.middleware import auth_middleware
 from app.models.model_manager import model_manager
 import uvicorn
@@ -13,7 +14,7 @@ from pathlib import Path
 # 初始化日志器
 logger = setup_logging("app")
 
-# 获取应用根目录
+# 获取应用根目录（app 目录）
 BASE_DIR = Path(__file__).resolve().parent
 
 # 创建FastAPI应用实例
@@ -38,6 +39,11 @@ app = FastAPI(
 
 # 配置静态文件
 app.mount("/static", StaticFiles(directory=BASE_DIR / "static"), name="static")
+
+# 暴露 ml_pipeline 生成的报告/图片，方便前端直接访问
+ML_REPORTS_DIR = PROJECT_ROOT / "ml_pipeline" / "reports"
+ML_REPORTS_DIR.mkdir(parents=True, exist_ok=True)
+app.mount("/ml-reports", StaticFiles(directory=ML_REPORTS_DIR), name="ml_reports")
 
 # 配置模板引擎
 templates = Jinja2Templates(directory=BASE_DIR / "templates")

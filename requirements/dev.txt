@@ -1,0 +1,12 @@
+httpx
+pandas
+numpy
+matplotlib
+seaborn
+scikit-learn
+fastapi
+uvicorn
+pydantic
+pydantic-settings
+joblib
+jinja2
