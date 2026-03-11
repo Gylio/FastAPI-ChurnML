@@ -3,8 +3,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi import Request
-from app.api import predict, batch, model, stats
+from app.api import predict, batch, model, stats, auth
 from app.core.logging import setup_logging
+from app.core.middleware import auth_middleware
 from app.models.model_manager import model_manager
 import uvicorn
 from pathlib import Path
@@ -50,11 +51,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# 注册认证中间件
+app.middleware("http")(auth_middleware)
+
 # 注册API路由
 app.include_router(predict.router)
 app.include_router(batch.router)
 app.include_router(model.router)
 app.include_router(stats.router)
+app.include_router(auth.router)
 
 # 前端页面路由
 @app.get("/", tags=["frontend"])
@@ -105,20 +110,7 @@ async def shutdown_event():
     """应用关闭时清理资源"""
     logger.info("应用关闭，清理资源...")
 
-# 根路径
-@app.get("/", tags=["root"])
-async def root():
-    """
-    根路径
-    
-    返回API服务信息
-    """
-    return {
-        "message": "用户流失预测API",
-        "version": "1.0.0",
-        "docs": "/docs",
-        "redoc": "/redoc"
-    }
+
 
 # 运行应用
 if __name__ == "__main__":

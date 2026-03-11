@@ -41,7 +41,7 @@ async def predict(
         response_time = time.time() - start_time
         
         # 记录请求
-        record_request(successful=True, response_time=response_time)
+        record_request(request_type="single", successful=True, response_time=response_time, request_id=request_id)
         
         logger.info(f"单条预测成功，请求ID: {request_id}, 响应时间: {response_time:.4f}秒")
         return result
@@ -50,7 +50,7 @@ async def predict(
         response_time = time.time() - start_time
         
         # 记录失败请求
-        record_request(successful=False, response_time=response_time)
+        record_request(request_type="single", successful=False, response_time=response_time, request_id=request_id)
         
         logger.error(f"单条预测失败，请求ID: {request_id}, 错误: {e}")
         raise HTTPException(

@@ -108,3 +108,4 @@ def get_model_path(version: Optional[str] = None) -> Path:
     """获取指定版本模型的路径（默认使用配置的默认版本）"""
     version = version or settings.DEFAULT_MODEL_VERSION
     return MODEL_DIR / f"churn_pred_{version}{settings.MODEL_FILE_SUFFIX}"
+

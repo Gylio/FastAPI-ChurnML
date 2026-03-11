@@ -16,14 +16,14 @@ def setup_logging(log_subdir: str = "app") -> logging.Logger:
     2. 输出目标：控制台 + 文件（logs/{log_subdir}/app.log）
     3. 日志分割：单个文件最大10MB，保留10个备份
     4. 日志格式：包含时间、模块、级别、请求ID（可选）、消息
-
+    
     Args:
         log_subdir: 日志存放的子目录，默认为"app"
     """
     # 打印调试信息
     print(f"LOG_DIR: {LOG_DIR}")
     print(f"log_subdir: {log_subdir}")
-
+    
     # 1. 定义日志格式
     # 详细格式（文件输出）：时间 - 模块 - 级别 - 消息
     file_formatter = logging.Formatter(
@@ -90,7 +90,6 @@ class RequestIDLogger(logging.LoggerAdapter):
     logger = RequestIDLogger(root_logger, {"request_id": "123456"})
     logger.info("预测请求开始")  # 日志会包含request_id=123456
     """
-
     def process(self, msg, kwargs):
         return f"{msg}", {"extra": {"request_id": self.extra.get("request_id", "unknown")}}
 

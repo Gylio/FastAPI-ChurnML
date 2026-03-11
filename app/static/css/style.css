@@ -57,6 +57,21 @@ body {
     color: #ecf0f1;
 }
 
+#user-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+#user-info span {
+    color: white;
+    font-weight: 500;
+}
+
+#user-info a {
+    margin-left: 10px;
+}
+
 /* 卡片样式 */
 .card {
     background-color: white;
@@ -97,6 +112,8 @@ label {
 
 input[type="text"],
 input[type="number"],
+input[type="password"],
+input[type="email"],
 select,
 input[type="file"] {
     width: 100%;
@@ -109,10 +126,20 @@ input[type="file"] {
 
 input[type="text"]:focus,
 input[type="number"]:focus,
+input[type="password"]:focus,
+input[type="email"]:focus,
 select:focus {
     outline: none;
     border-color: #3498db;
     box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+}
+
+/* 认证页面输入框样式 */
+.auth-input {
+    width: 100% !important;
+    min-width: 360px !important;
+    box-sizing: border-box !important;
+    display: block !important;
 }
 
 button {

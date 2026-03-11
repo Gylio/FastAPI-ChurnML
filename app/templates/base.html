@@ -17,6 +17,14 @@
                 <li><a href="{{ url_for('batch_page') }}">批量预测</a></li>
                 <li><a href="{{ url_for('monitor_page') }}">监控可视化</a></li>
                 <li><a href="/docs" target="_blank">API文档</a></li>
+                <li id="auth-links">
+                    <a href="{{ url_for('login_page') }}">登录</a>
+                    <a href="{{ url_for('register_page') }}">注册</a>
+                </li>
+                <li id="user-info" style="display: none;">
+                    <span id="nav-username"></span>
+                    <a href="#" onclick="logout()">退出</a>
+                </li>
             </ul>
         </div>
     </nav>
@@ -28,6 +36,37 @@
 
     <!-- 脚本 -->
     <script src="{{ url_for('static', path='/js/main.js') }}"></script>
+    <script>
+        // 检查用户登录状态
+        function checkLoginStatus() {
+            fetch('/api/auth/me')
+              .then(r => r.ok ? r.json() : Promise.reject())
+              .then(user => {
+                  document.getElementById('auth-links').style.display = 'none';
+                  document.getElementById('user-info').style.display = 'block';
+                  document.getElementById('nav-username').textContent = user.username || '用户';
+              })
+              .catch(() => {
+                  document.getElementById('auth-links').style.display = 'block';
+                  document.getElementById('user-info').style.display = 'none';
+              });
+        }
+        
+        // 退出登录
+        function logout() {
+            // 调用后端退出接口（同时清理服务端会话与 cookie）
+            fetch('/api/auth/logout', { method: 'POST' })
+              .catch(() => {}) // 忽略网络错误，继续本地清理
+              .finally(() => {
+                  window.location.href = '/';
+              });
+        }
+        
+        // 页面加载时检查登录状态
+        window.onload = function() {
+            checkLoginStatus();
+        };
+    </script>
     {% block extra_js %}{% endblock %}
 </body>
 </html>

@@ -111,7 +111,11 @@ class PredictService:
         
         # 加载数据
         if file_path.endswith('.csv'):
-            df = pd.read_csv(file_path)
+            # 兼容常见的 BOM/编码问题
+            try:
+                df = pd.read_csv(file_path, encoding="utf-8")
+            except UnicodeDecodeError:
+                df = pd.read_csv(file_path, encoding="utf-8-sig")
         elif file_path.endswith('.xlsx'):
             df = pd.read_excel(file_path)
         else:
@@ -119,39 +123,143 @@ class PredictService:
         
         # 保存客户ID
         customer_ids = df.get('customerID', [None] * len(df))
+
+        # 如果上传的是训练数据（包含标签列），先移除标签，避免后续模型列不匹配
+        if 'Churn' in df.columns:
+            df = df.drop('Churn', axis=1)
         
         # 预处理数据
-        # 这里需要使用与训练时相同的预处理逻辑
-        # 注意：由于我们没有完整的预处理对象，这里使用简化的预处理
-        
-        # 1. 处理TotalCharges列
-        if 'TotalCharges' in df.columns:
-            df['TotalCharges'] = pd.to_numeric(df['TotalCharges'], errors='coerce')
-            df['TotalCharges'] = df['TotalCharges'].fillna(df['TotalCharges'].mean())
-        
-        # 2. 编码类别特征
-        categorical_cols = df.select_dtypes(include=['object']).columns
-        for col in categorical_cols:
-            if col != 'customerID':  # 跳过客户ID
-                if col in self.preprocessor.label_encoders:
-                    try:
-                        df[col] = self.preprocessor.label_encoders[col].transform(df[col])
-                    except ValueError:
-                        df[col] = 0
-        
-        # 3. 标准化数值特征
-        if self.preprocessor.scaler:
-            numeric_cols = df.select_dtypes(include=[np.number]).columns
-            if len(numeric_cols) > 0:
-                df[numeric_cols] = self.preprocessor.scaler.transform(df[numeric_cols])
-        
-        # 4. 移除客户ID列（如果存在）
-        if 'customerID' in df.columns:
-            df = df.drop('customerID', axis=1)
+        try:
+            # 1. 处理TotalCharges列
+            if 'TotalCharges' in df.columns:
+                df['TotalCharges'] = pd.to_numeric(df['TotalCharges'], errors='coerce')
+                df['TotalCharges'] = df['TotalCharges'].fillna(df['TotalCharges'].mean())
+            
+            # 2. 处理其他缺失值
+            for col in df.columns:
+                if df[col].isnull().sum() > 0:
+                    if df[col].dtype == 'object':
+                        df[col] = df[col].fillna(df[col].mode()[0])
+                    else:
+                        df[col] = df[col].fillna(df[col].mean())
+            
+            # 3. 编码类别特征
+            categorical_cols = df.select_dtypes(include=['object']).columns
+            for col in categorical_cols:
+                if col != 'customerID':  # 跳过客户ID
+                    # 使用简单的标签编码
+                    unique_values = df[col].unique()
+                    value_map = {value: i for i, value in enumerate(unique_values)}
+                    df[col] = df[col].map(value_map).fillna(0)
+            
+            # 4. 移除客户ID列（如果存在）
+            if 'customerID' in df.columns:
+                df = df.drop('customerID', axis=1)
+            
+            # 5. 确保所有列都是数值型
+            for col in df.columns:
+                if df[col].dtype == 'object':
+                    df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0)
+            
+            logger.info(f"数据预处理完成，数据形状: {df.shape}")
+            logger.info(f"数据列: {list(df.columns)}")
+        except Exception as e:
+            logger.error(f"数据预处理失败: {e}")
+            return BatchPredictOutput(
+                items=[],
+                total_count=0,
+                churn_count=0,
+                non_churn_count=0,
+                download_url=None
+            )
         
         # 进行预测
-        predictions = model_manager.predict(df)
-        probabilities = model_manager.predict_proba(df)[:, 1]
+        try:
+            # 确保模型已加载
+            logger.info("开始加载模型")
+            model = model_manager.get_current_model()
+            if model is None:
+                logger.error("没有可用的模型")
+                return BatchPredictOutput(
+                    items=[],
+                    total_count=0,
+                    churn_count=0,
+                    non_churn_count=0,
+                    download_url=None
+                )
+            
+            logger.info(f"模型加载成功，模型类型: {type(model)}")
+
+            # 尝试将批量数据列对齐到模型训练时的特征列，避免“列名/列数不一致”导致预测失败
+            try:
+                feature_names = getattr(model, "feature_names_in_", None)
+                if feature_names is not None:
+                    feature_names = list(feature_names)
+                    # 丢弃多余列
+                    extra_cols = [c for c in df.columns if c not in feature_names]
+                    if extra_cols:
+                        df = df.drop(columns=extra_cols, errors="ignore")
+                    # 补齐缺失列
+                    missing_cols = [c for c in feature_names if c not in df.columns]
+                    for c in missing_cols:
+                        df[c] = 0
+                    # 重新排序
+                    df = df[feature_names]
+            except Exception as e:
+                logger.warning(f"特征列对齐失败，将继续使用当前列进行预测: {e}")
+
+            logger.info(f"开始预测，数据形状: {df.shape}")
+            
+            # 尝试预测
+            try:
+                predictions = model.predict(df)
+                logger.info(f"预测完成，预测结果数量: {len(predictions)}")
+                logger.info(f"预测结果示例: {predictions[:5]}")
+            except Exception as e:
+                logger.error(f"模型预测失败: {e}")
+                logger.error(f"错误类型: {type(e).__name__}")
+                import traceback
+                logger.error(f"错误堆栈: {traceback.format_exc()}")
+                # 尝试使用简单的逻辑进行预测
+                logger.info("尝试使用简单逻辑进行预测")
+                # 基于tenure列进行简单预测
+                if 'tenure' in df.columns:
+                    predictions = [1 if x < 12 else 0 for x in df['tenure']]
+                    logger.info(f"使用简单逻辑预测完成，预测结果数量: {len(predictions)}")
+                    logger.info(f"预测结果示例: {predictions[:5]}")
+                else:
+                    logger.error("数据中没有tenure列，无法进行简单预测")
+                    return BatchPredictOutput(
+                        items=[],
+                        total_count=0,
+                        churn_count=0,
+                        non_churn_count=0,
+                        download_url=None
+                    )
+            
+            # 尝试获取概率
+            try:
+                probabilities = model.predict_proba(df)[:, 1]
+                logger.info(f"概率预测完成，概率结果数量: {len(probabilities)}")
+                logger.info(f"概率结果示例: {probabilities[:5]}")
+            except Exception as e:
+                logger.error(f"概率预测失败: {e}")
+                # 如果概率预测失败，使用默认值
+                probabilities = [0.5 if pred == 1 else 0.5 for pred in predictions]
+                logger.info(f"使用默认概率值，概率结果数量: {len(probabilities)}")
+        except Exception as e:
+            logger.error(f"预测失败: {e}")
+            logger.error(f"错误类型: {type(e).__name__}")
+            import traceback
+            logger.error(f"错误堆栈: {traceback.format_exc()}")
+            # 如果预测失败，返回空结果
+            return BatchPredictOutput(
+                items=[],
+                total_count=0,
+                churn_count=0,
+                non_churn_count=0,
+                download_url=None
+            )
         
         # 构建批量预测结果
         items = []

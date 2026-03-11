@@ -52,7 +52,7 @@ async def get_model_versions():
         response_time = time.time() - start_time
         
         # 记录请求
-        record_request(successful=True, response_time=response_time)
+        record_request(request_type="model", successful=True, response_time=response_time, request_id=request_id)
         
         logger.info(f"查看模型版本成功，请求ID: {request_id}, 响应时间: {response_time:.4f}秒")
         return response
@@ -61,7 +61,7 @@ async def get_model_versions():
         response_time = time.time() - start_time
         
         # 记录失败请求
-        record_request(successful=False, response_time=response_time)
+        record_request(request_type="model", successful=False, response_time=response_time, request_id=request_id)
         
         logger.error(f"查看模型版本失败，请求ID: {request_id}, 错误: {e}")
         raise HTTPException(
@@ -116,7 +116,7 @@ async def switch_model(
         response_time = time.time() - start_time
         
         # 记录请求
-        record_request(successful=True, response_time=response_time)
+        record_request(request_type="model", successful=True, response_time=response_time, request_id=request_id)
         
         logger.info(f"切换模型成功，请求ID: {request_id}, 响应时间: {response_time:.4f}秒, 新模型版本: {current_version}")
         return response
@@ -125,7 +125,7 @@ async def switch_model(
         response_time = time.time() - start_time
         
         # 记录失败请求
-        record_request(successful=False, response_time=response_time)
+        record_request(request_type="model", successful=False, response_time=response_time, request_id=request_id)
         
         logger.error(f"切换模型失败，请求ID: {request_id}, 错误: {e}")
         raise HTTPException(

@@ -59,7 +59,7 @@ async def batch_predict(
         response_time = time.time() - start_time
         
         # 记录请求
-        record_request(successful=True, response_time=response_time)
+        record_request(request_type="batch", successful=True, response_time=response_time, request_id=request_id)
         
         logger.info(f"批量预测成功，请求ID: {request_id}, 响应时间: {response_time:.4f}秒, 预测数量: {result.total_count}")
         return result
@@ -68,7 +68,7 @@ async def batch_predict(
         response_time = time.time() - start_time
         
         # 记录失败请求
-        record_request(successful=False, response_time=response_time)
+        record_request(request_type="batch", successful=False, response_time=response_time, request_id=request_id)
         
         logger.error(f"批量预测失败，请求ID: {request_id}, 错误: {e}")
         raise HTTPException(

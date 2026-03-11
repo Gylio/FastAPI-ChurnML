@@ -32,9 +32,9 @@ X = data.drop(['customerID', 'Churn'], axis=1)
 y = data['Churn']
 
 # 编码分类特征
-categorical_cols = ['gender', 'Partner', 'Dependents', 'PhoneService', 'MultipleLines',
-                  'InternetService', 'OnlineSecurity', 'OnlineBackup', 'DeviceProtection',
-                  'TechSupport', 'StreamingTV', 'StreamingMovies', 'Contract',
+categorical_cols = ['gender', 'Partner', 'Dependents', 'PhoneService', 'MultipleLines', 
+                  'InternetService', 'OnlineSecurity', 'OnlineBackup', 'DeviceProtection', 
+                  'TechSupport', 'StreamingTV', 'StreamingMovies', 'Contract', 
                   'PaperlessBilling', 'PaymentMethod']
 
 label_encoders = {}

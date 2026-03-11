@@ -10,4 +10,3 @@ pydantic
 pydantic-settings
 joblib
 jinja2
-python-multipart
