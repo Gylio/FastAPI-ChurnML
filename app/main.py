@@ -40,7 +40,6 @@ app = FastAPI(
 # 配置静态文件
 app.mount("/static", StaticFiles(directory=BASE_DIR / "static"), name="static")
 
-# 暴露 ml_pipeline 生成的报告/图片，方便前端直接访问
 ML_REPORTS_DIR = PROJECT_ROOT / "ml_pipeline" / "reports"
 ML_REPORTS_DIR.mkdir(parents=True, exist_ok=True)
 app.mount("/ml-reports", StaticFiles(directory=ML_REPORTS_DIR), name="ml_reports")

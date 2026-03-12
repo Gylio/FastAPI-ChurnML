@@ -1,4 +1,3 @@
-httpx
 pandas
 numpy
 matplotlib
@@ -10,3 +9,4 @@ pydantic
 pydantic-settings
 joblib
 jinja2
+httpx
